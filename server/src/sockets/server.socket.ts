@@ -5,7 +5,11 @@ export default function initializeSocket(httpServer: any) {
 
   io.on("connection", (socket) => {
     socket.on("message", (msg) => {
-        socket.broadcast.emit("message", { ...msg, email: socket.user.email });
+      socket.broadcast.emit("message", { ...msg });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected");
     });
   });
 }
