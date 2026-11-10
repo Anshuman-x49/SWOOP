@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { body, validationResult } from "express-validator";
+import { body, cookie, validationResult } from "express-validator";
 
 // User registration validation middleware
 const userRegisterValidator = [
@@ -64,4 +64,24 @@ const userLoginValidator = [
   },
 ];
 
-export { userRegisterValidator, userLoginValidator };
+// User logout validation middleware
+const userLogoutValidator = [
+  cookie("refreshToken")
+    .exists()
+    .withMessage("Refresh token is required")
+    .bail()
+    .isJWT()
+    .withMessage("Refresh token is invalid"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export { userRegisterValidator, userLoginValidator, userLogoutValidator };

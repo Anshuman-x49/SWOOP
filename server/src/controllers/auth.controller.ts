@@ -4,14 +4,17 @@ import {
   COOKIE_OPTIONS,
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
 } from "../utils/auth.util.js";
 import {
   createUser,
   findUserByEmail,
+  getUserById,
   updateRefreshToken,
 } from "../DAO/user.dao.js";
 import type { Types } from "mongoose";
 
+// Issue a refresh token for the user and set it in an HTTP-only cookie
 const issueRefreshToken = async ({
   userId,
   res,
@@ -28,11 +31,12 @@ const issueRefreshToken = async ({
 
   // Update refresh token in the database
   await updateRefreshToken({ userId, refreshTokenHash: hashedRefreshToken });
-  
+
   // Set refresh token in HTTP-only cookie
   res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS as CookieOptions);
 };
 
+// Send authentication tokens (access and refresh) to the client
 const sendAuthTokens = async (
   user: { _id: Types.ObjectId | string; name: string; email: string } | null,
   res: Response,
@@ -49,7 +53,7 @@ const sendAuthTokens = async (
 
   return res.status(status).json({
     message: messages,
-    data:{
+    data: {
       user: {
         id: user._id,
         name: user.name,
@@ -148,4 +152,94 @@ const userLoginController = async (req: Request, res: Response) => {
   }
 };
 
-export { userRegisterController, userLoginController };
+// User logout controller
+const userLogoutController = async (req: Request, res: Response) => {
+  // Get the refresh token from the cookie
+  const refreshToken: string | undefined = req.cookies?.refreshToken;
+
+  // If no refresh token is provided, return an error response
+  if (!refreshToken) {
+    return res.status(401).json({
+      message: "Invalid refresh token",
+      errors: [
+        {
+          path: "refreshToken",
+          msg: "Refresh token is required",
+        },
+      ],
+    });
+  }
+
+  try {
+    // Verify the refresh token and get the user ID
+    const { userId } = await verifyRefreshToken({ token: refreshToken });
+
+    // Get the user from the database and check if the refresh token matches
+    const user = await getUserById({ userId, select: "+refreshTokenHash" });
+    if (!user || !user.refreshTokenHash) {
+      return res.status(401).json({
+        message: "Invalid refresh token",
+        errors: [
+          {
+            path: "refreshToken",
+            msg: "Session expired or user not found",
+          },
+        ],
+      });
+    }
+
+    // Compare the provided refresh token with the hashed refresh token in the database
+    const isTokenValid = await bcryptjs.compare(
+      refreshToken,
+      user.refreshTokenHash,
+    );
+    if (!isTokenValid) {
+      return res.status(401).json({
+        message: "Invalid refresh token",
+        errors: [
+          {
+            path: "refreshToken",
+            msg: "Refresh token does not match active session",
+          },
+        ],
+      });
+    }
+
+    // Invalidate refresh token in database
+    await updateRefreshToken({ userId: user._id, refreshTokenHash: null });
+
+    // Clear refresh token cookie
+    res.clearCookie("refreshToken", COOKIE_OPTIONS as CookieOptions);
+
+    return res.status(200).json({
+      message: "User logged out successfully",
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError")
+    ) {
+      return res.status(401).json({
+        message: "Invalid or expired refresh token",
+        errors: [
+          {
+            path: "refreshToken",
+            msg: error.message,
+          },
+        ],
+      });
+    }
+
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+export {
+  userRegisterController,
+  userLoginController,
+  userLogoutController,
+  userLogoutController as userLogoutcontroller,
+};

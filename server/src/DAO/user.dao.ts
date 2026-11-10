@@ -27,12 +27,22 @@ async function updateRefreshToken({
   refreshTokenHash: string | null;
 }): Promise<IUser | null> {
   return await userModel
-    .findByIdAndUpdate(
-      userId,
-      { refreshTokenHash },
-      { new: true },
-    )
+    .findByIdAndUpdate(userId, { refreshTokenHash }, { new: true })
     .exec();
 }
 
-export { createUser, findUserByEmail, updateRefreshToken };
+async function getUserById({
+  userId,
+  select,
+}: {
+  userId: Types.ObjectId | string;
+  select?: string;
+}): Promise<IUser | null> {
+  const query = userModel.findById(userId);
+  if (select) {
+    query.select(select);
+  }
+  return await query.exec();
+}
+
+export { createUser, findUserByEmail, updateRefreshToken, getUserById };
