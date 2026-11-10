@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 
+// User registration validation middleware
 const userRegisterValidator = [
   body("name")
     .exists()
@@ -35,4 +36,32 @@ const userRegisterValidator = [
   },
 ];
 
-export { userRegisterValidator };
+// User login validation middleware
+const userLoginValidator = [
+  body("email")
+    .exists()
+    .withMessage("Email is required")
+    .bail()
+    .isEmail()
+    .withMessage("Email is invalid")
+    .normalizeEmail(),
+
+  body("password")
+    .exists()
+    .withMessage("Password is required")
+    .bail()
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long"),
+
+  (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array(),
+      });
+    }
+    next();
+  },
+];
+
+export { userRegisterValidator, userLoginValidator };

@@ -1,6 +1,13 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema(
+interface IUser extends mongoose.Document {
+  name: string;
+  email: string;
+  password?: string;
+  refreshTokenHash?: string | null;
+}
+
+const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
       type: String,
@@ -21,7 +28,7 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
-    refreshToken: {
+    refreshTokenHash: {
       type: String,
       default: null,
       select: false,
@@ -30,6 +37,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const userModel = mongoose.model("user", userSchema);
+const userModel = mongoose.model<IUser>("user", userSchema);
 
-export default userModel;
+export { userModel };  export type { IUser };
+
