@@ -1,3 +1,4 @@
+import type { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 
 const userRegisterValidator = [

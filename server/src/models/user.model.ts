@@ -19,10 +19,12 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       minlength: 6,
+      select: false,
     },
     refreshToken: {
       type: String,
       default: null,
+      select: false,
     },
   },
   { timestamps: true },
