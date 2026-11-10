@@ -112,7 +112,7 @@ const userLoginController = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     // Check if user exists
-    const user = await findUserByEmail({ email });
+    const user = await findUserByEmail({ email, select: "+password" });
     if (!user) {
       return res.status(400).json({
         message: "Invalid credentials",

@@ -36,9 +36,13 @@ async function generateRefreshToken({
   return jwt.sign({ userId }, secret, { expiresIn: "7d" });
 }
 
-async function verifyAccessToken({token}: {token: string}): Promise<{userId: Types.ObjectId | string}> {
+async function verifyAccessToken({
+  token,
+}: {
+  token: string;
+}): Promise<{ userId: Types.ObjectId | string }> {
   const secret = config.accessTokenSecret;
-  if(secret === undefined) {
+  if (secret === undefined) {
     throw new Error("Access token secret is not configured");
   }
   const decoded = jwt.verify(token, secret);
@@ -49,9 +53,13 @@ async function verifyAccessToken({token}: {token: string}): Promise<{userId: Typ
   }
 }
 
-async function verifyRefreshToken({token}: {token: string}): Promise<{userId: Types.ObjectId | string}> {
+async function verifyRefreshToken({
+  token,
+}: {
+  token: string;
+}): Promise<{ userId: Types.ObjectId | string }> {
   const secret = config.refreshTokenSecret;
-  if(secret === undefined) {
+  if (secret === undefined) {
     throw new Error("Refresh token secret is not configured");
   }
   const decoded = jwt.verify(token, secret);
@@ -62,4 +70,10 @@ async function verifyRefreshToken({token}: {token: string}): Promise<{userId: Ty
   }
 }
 
-export { COOKIE_OPTIONS, generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken };
+export {
+  COOKIE_OPTIONS,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+};

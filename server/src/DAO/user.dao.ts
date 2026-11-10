@@ -13,10 +13,16 @@ async function createUser(userData: CreateUserData): Promise<IUser> {
 
 async function findUserByEmail({
   email,
+  select,
 }: {
   email: string;
+  select?: string;
 }): Promise<IUser | null> {
-  return await userModel.findOne({ email }).select("+password").exec();
+  const query = userModel.findOne({ email });
+  if (select) {
+    query.select(select);
+  }
+  return await query.exec();
 }
 
 async function updateRefreshToken({
