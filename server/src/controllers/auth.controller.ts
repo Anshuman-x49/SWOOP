@@ -194,6 +194,12 @@ const userLogoutController = async (req: Request, res: Response) => {
       user.refreshTokenHash,
     );
     if (!isTokenValid) {
+      // Invalidate refresh token in database
+      await updateRefreshToken({ userId: user._id, refreshTokenHash: null });
+      
+      // Clear refresh token cookie
+      res.clearCookie("refreshToken", COOKIE_OPTIONS as CookieOptions);
+
       return res.status(401).json({
         message: "Invalid refresh token",
         errors: [
