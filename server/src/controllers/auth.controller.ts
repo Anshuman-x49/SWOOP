@@ -316,9 +316,41 @@ const userRefreshTokenController = async (req: Request, res: Response) => {
   }
 };
 
+// Get user details
+const getUserController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await getUserById({ userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "User details retrieved successfully",
+      data: {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 export {
   userRegisterController,
   userLoginController,
   userLogoutController,
   userRefreshTokenController,
+  getUserController,
 };

@@ -5,6 +5,7 @@ import {
   userRegisterValidator,
 } from "../validators/auth.validator.js";
 import {
+  getUserController,
   userLoginController,
   userLogoutController,
   userRefreshTokenController,
@@ -31,14 +32,21 @@ router.post("/login", userLoginValidator, userLoginController);
 /**
  * @route POST /api/auth/refresh-token
  * @desc Refresh access token using refresh token
- * @access Public
+ * @access Private
  */
 router.post("/refresh-token", userRefreshTokenController);
 
 /**
+ * @route GET /api/auth/get-me
+ * @desc Get currently logged in user information
+ * @access Protected
+ */
+router.get("/get-me", authMiddleware, getUserController);
+
+/**
  * @route POST /api/auth/logout
  * @desc Logout a user
- * @access Private
+ * @access Protected
  */
 router.post(
   "/logout",
