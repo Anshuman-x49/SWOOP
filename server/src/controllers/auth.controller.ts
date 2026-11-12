@@ -196,7 +196,7 @@ const userLogoutController = async (req: Request, res: Response) => {
     if (!isTokenValid) {
       // Invalidate refresh token in database
       await updateRefreshToken({ userId: user._id, refreshTokenHash: null });
-      
+
       // Clear refresh token cookie
       res.clearCookie("refreshToken", COOKIE_OPTIONS as CookieOptions);
 
@@ -243,9 +243,82 @@ const userLogoutController = async (req: Request, res: Response) => {
   }
 };
 
+// Rotate user refresh token
+const userRefreshTokenController = async (req: Request, res: Response) => {
+  // Get the refresh token from the cookie
+  const refreshToken: string | undefined = req.cookies?.refreshToken;
+
+  // If no refresh token is provided, return an error response
+  if (!refreshToken) {
+    return res.status(401).json({
+      message: "Invalid refresh token",
+      errors: [
+        {
+          path: "refreshToken",
+          msg: "Refresh token is required",
+        },
+      ],
+    });
+  }
+  try {
+    // Verify the refresh token and get the user ID
+    const { userId } = await verifyRefreshToken({ token: refreshToken });
+
+    // Get the user from the database and check if the refresh token matches
+    const user = await getUserById({ userId, select: "+refreshTokenHash" });
+
+    if (!user || !user.refreshTokenHash) {
+      return res.status(401).json({
+        message: "Invalid refresh token",
+        errors: [
+          {
+            path: "refreshToken",
+            msg: "Session expired or user not found",
+          },
+        ],
+      });
+    }
+
+    // Compare the provided refresh token with the hashed refresh token in the database
+    const isTokenValid = await bcryptjs.compare(
+      refreshToken,
+      user.refreshTokenHash,
+    );
+    if (!isTokenValid) {
+      // Invalidate refresh token in database
+      await updateRefreshToken({ userId: user._id, refreshTokenHash: null });
+
+      // Clear refresh token cookie
+      res.clearCookie("refreshToken", COOKIE_OPTIONS as CookieOptions);
+
+      return res.status(401).json({
+        message: "Invalid refresh token",
+        errors: [
+          {
+            path: "refreshToken",
+            msg: "Refresh token does not match active session",
+          },
+        ],
+      });
+    }
+
+    return await sendAuthTokens(
+      user,
+      res,
+      200,
+      "Refresh token rotate successfully",
+    );
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 export {
   userRegisterController,
   userLoginController,
   userLogoutController,
-  userLogoutController as userLogoutcontroller,
+  userRefreshTokenController,
 };

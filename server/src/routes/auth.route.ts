@@ -7,6 +7,7 @@ import {
 import {
   userLoginController,
   userLogoutController,
+  userRefreshTokenController,
   userRegisterController,
 } from "../controllers/auth.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
@@ -28,10 +29,22 @@ router.post("/register", userRegisterValidator, userRegisterController);
 router.post("/login", userLoginValidator, userLoginController);
 
 /**
+ * @route POST /api/auth/refresh-token
+ * @desc Refresh access token using refresh token
+ * @access Public
+ */
+router.post("/refresh-token", userRefreshTokenController);
+
+/**
  * @route POST /api/auth/logout
  * @desc Logout a user
  * @access Private
  */
-router.post("/logout", authMiddleware, userLogoutValidator, userLogoutController);
+router.post(
+  "/logout",
+  authMiddleware,
+  userLogoutValidator,
+  userLogoutController,
+);
 
 export default router;
