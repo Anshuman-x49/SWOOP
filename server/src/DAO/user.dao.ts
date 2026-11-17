@@ -37,7 +37,11 @@ async function updateRefreshToken({
   refreshTokenHash: string | null;
 }): Promise<IUser | null> {
   return await userModel
-    .findByIdAndUpdate(userId, { refreshTokenHash }, { new: true })
+    .findByIdAndUpdate(
+      userId,
+      { refreshTokenHash },
+      { returnDocument: "after" },
+    )
     .exec();
 }
 
