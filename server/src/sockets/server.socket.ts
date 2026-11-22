@@ -1,5 +1,6 @@
 import { Server, type Socket } from "socket.io";
 import { verifyAccessToken } from "../utils/JWT.js";
+import config from "../config/config.js";
 
 // Extend Socket type to carry the authenticated user
 declare module "socket.io" {
@@ -9,7 +10,12 @@ declare module "socket.io" {
 }
 
 export default function initializeSocket(httpServer: any) {
-  const io = new Server(httpServer);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: config.clientUrl,
+      credentials: true,
+    },
+  });
 
   io.use(async (socket: Socket, next) => {
     const token = socket.handshake.headers?.authorization?.split(" ")[1];

@@ -9,10 +9,16 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import { AppError } from "../utils/AppError.js";
+import config from "../config/config.js";
 
 const app: Application = express();
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: config.clientUrl,
+    credentials: true,
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

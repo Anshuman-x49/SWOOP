@@ -21,6 +21,7 @@ const config = {
   mongodbUri: process.env.MONGODB_URI,
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
   refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
+  clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
 };
 
 export default config;
