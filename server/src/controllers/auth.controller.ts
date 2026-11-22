@@ -5,7 +5,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
-} from "../utils/auth.util.js";
+} from "../utils/JWT.js";
 import {
   createUser,
   findUserByEmail,
@@ -13,6 +13,8 @@ import {
   updateRefreshToken,
 } from "../DAO/user.dao.js";
 import type { Types } from "mongoose";
+import { AppError } from "../utils/AppError.js";
+import { sendSuccess } from "../utils/apiResponse.js";
 
 // Issue a refresh token for the user and set it in an HTTP-only cookie
 const issueRefreshToken = async ({
@@ -41,18 +43,20 @@ const sendAuthTokens = async (
   user: { _id: Types.ObjectId | string; name: string; email: string } | null,
   res: Response,
   status: number,
-  messages: string,
+  message: string,
 ) => {
   if (!user) {
-    throw new Error("Cannot issue auth tokens without a user");
+    throw new AppError(500, "Cannot issue auth tokens without a user");
   }
 
   // Generate access and refresh tokens
   const accessToken = await generateAccessToken({ userId: user._id });
   await issueRefreshToken({ userId: user._id, res });
 
-  return res.status(status).json({
-    message: messages,
+  return sendSuccess({
+    res,
+    statusCode: status,
+    message,
     data: {
       user: {
         id: user._id,
@@ -126,11 +130,11 @@ const userLoginController = async (req: Request, res: Response) => {
     }
 
     // Compare password
-    const isPasswordvalid = await bcryptjs.compare(
+    const isPasswordValid = await bcryptjs.compare(
       password,
       user.password || "",
     );
-    if (!isPasswordvalid) {
+    if (!isPasswordValid) {
       return res.status(401).json({
         message: "Invalid credentials",
         errors: [
@@ -217,7 +221,9 @@ const userLogoutController = async (req: Request, res: Response) => {
     // Clear refresh token cookie
     res.clearCookie("refreshToken", COOKIE_OPTIONS as CookieOptions);
 
-    return res.status(200).json({
+    return sendSuccess({
+      res,
+      statusCode: 200,
       message: "User logged out successfully",
     });
   } catch (error) {
@@ -309,6 +315,21 @@ const userRefreshTokenController = async (req: Request, res: Response) => {
       "Refresh token rotate successfully",
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError")
+    ) {
+      return res.status(401).json({
+        message: "Invalid or expired refresh token",
+        errors: [
+          {
+            path: "refreshToken",
+            msg: error.message,
+          },
+        ],
+      });
+    }
+
     return res.status(500).json({
       message: "Internal server error",
       error: error instanceof Error ? error.message : String(error),
@@ -329,7 +350,9 @@ const getUserController = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({
+    return sendSuccess({
+      res,
+      statusCode: 200,
       message: "User details retrieved successfully",
       data: {
         user: {

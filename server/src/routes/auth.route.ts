@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   userLoginValidator,
   userLogoutValidator,
+  userRefreshTokenValidator,
   userRegisterValidator,
 } from "../validators/auth.validator.js";
 import {
@@ -34,7 +35,11 @@ router.post("/login", userLoginValidator, userLoginController);
  * @desc Refresh access token using refresh token
  * @access Private
  */
-router.post("/refresh-token", userRefreshTokenController);
+router.post(
+  "/refresh-token",
+  userRefreshTokenValidator,
+  userRefreshTokenController,
+);
 
 /**
  * @route GET /api/auth/get-me

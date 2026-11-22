@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { verifyAccessToken } from "../utils/auth.util.js";
+import { verifyAccessToken } from "../utils/JWT.js";
 
 declare global {
   namespace Express {

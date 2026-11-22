@@ -1,5 +1,5 @@
-import type { NextFunction, Request, Response } from "express";
-import { body, cookie, validationResult } from "express-validator";
+import { body, cookie } from "express-validator";
+import { validationMiddleware } from "../middleware/validation.middleware.js";
 
 // User registration validation middleware
 const userRegisterValidator = [
@@ -25,15 +25,7 @@ const userRegisterValidator = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 
-  (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        errors: errors.array(),
-      });
-    }
-    next();
-  },
+  validationMiddleware,
 ];
 
 // User login validation middleware
@@ -53,15 +45,7 @@ const userLoginValidator = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 
-  (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        errors: errors.array(),
-      });
-    }
-    next();
-  },
+  validationMiddleware,
 ];
 
 // User logout validation middleware
@@ -73,15 +57,24 @@ const userLogoutValidator = [
     .isJWT()
     .withMessage("Refresh token is invalid"),
 
-  (req: Request, res: Response, next: NextFunction) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        errors: errors.array(),
-      });
-    }
-    next();
-  },
+  validationMiddleware,
 ];
 
-export { userRegisterValidator, userLoginValidator, userLogoutValidator };
+// User refresh token validation middleware
+const userRefreshTokenValidator = [
+  cookie("refreshToken")
+    .exists()
+    .withMessage("Refresh token is required")
+    .bail()
+    .isJWT()
+    .withMessage("Refresh token is invalid"),
+
+  validationMiddleware,
+];
+
+export {
+  userRegisterValidator,
+  userLoginValidator,
+  userLogoutValidator,
+  userRefreshTokenValidator,
+};

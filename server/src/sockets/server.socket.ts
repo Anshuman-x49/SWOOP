@@ -1,5 +1,5 @@
 import { Server, type Socket } from "socket.io";
-import { verifyAccessToken } from "../utils/auth.util.js";
+import { verifyAccessToken } from "../utils/JWT.js";
 
 // Extend Socket type to carry the authenticated user
 declare module "socket.io" {
