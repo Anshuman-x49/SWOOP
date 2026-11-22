@@ -1,60 +1,33 @@
-import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { Button, Input } from '../../../../shared/ui'
 import { Mail, Lock, User as UserIcon } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useForm } from 'react-hook-form'
+import isEmail from 'validator/lib/isEmail'
+
+interface RegisterFormValues {
+  name: string
+  email: string
+  password: string
+}
 
 export function RegisterForm() {
   const navigate = useNavigate()
   const { status, error, register } = useAuth()
+  const {
+    register: registerField,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormValues>()
 
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState<{
-    name?: string
-    email?: string
-    password?: string
-  }>({})
-
-  const validate = () => {
-    const errors: { name?: string; email?: string; password?: string } = {}
-    if (!name.trim()) {
-      errors.name = 'Name is required'
-    } else if (name.trim().length < 3) {
-      errors.name = 'Name must be at least 3 characters'
-    }
-    if (!email.trim()) {
-      errors.email = 'Email is required'
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.email = 'Please enter a valid email address'
-    }
-    if (!password) {
-      errors.password = 'Password is required'
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters'
-    }
-    setFieldErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!validate()) return
-
-    if (
-      await register({
-        name: name.trim(),
-        email: email.trim(),
-        password,
-      })
-    ) {
+  const onSubmit = async ({ name, email, password }: RegisterFormValues) => {
+    if (await register({ name: name.trim(), email: email.trim(), password })) {
       navigate('/chats')
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4 w-full">
       {error && (
         <div
           role="alert"
@@ -68,9 +41,12 @@ export function RegisterForm() {
         label="Full Name"
         type="text"
         placeholder="Jane Doe"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        error={fieldErrors.name}
+        {...registerField('name', {
+          required: 'Name is required',
+          validate: (value) =>
+            value.trim().length >= 3 || 'Name must be at least 3 characters long',
+        })}
+        error={errors.name?.message}
         leftIcon={<UserIcon className="h-4 w-4" />}
         autoComplete="name"
         required
@@ -80,9 +56,11 @@ export function RegisterForm() {
         label="Email address"
         type="email"
         placeholder="you@example.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        error={fieldErrors.email}
+        {...registerField('email', {
+          required: 'Email is required',
+          validate: (value) => isEmail(value.trim()) || 'Email is invalid',
+        })}
+        error={errors.email?.message}
         leftIcon={<Mail className="h-4 w-4" />}
         autoComplete="email"
         required
@@ -92,9 +70,14 @@ export function RegisterForm() {
         label="Password"
         type="password"
         placeholder="••••••••"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        error={fieldErrors.password}
+        {...registerField('password', {
+          required: 'Password is required',
+          minLength: {
+            value: 6,
+            message: 'Password must be at least 6 characters long',
+          },
+        })}
+        error={errors.password?.message}
         helperText="Must be at least 6 characters"
         leftIcon={<Lock className="h-4 w-4" />}
         autoComplete="new-password"

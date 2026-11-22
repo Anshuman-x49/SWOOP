@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type ReactNode } from 'react'
+import { useId, type InputHTMLAttributes, type ReactNode, type Ref } from 'react'
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -6,6 +6,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   helperText?: string
   leftIcon?: ReactNode
   rightIcon?: ReactNode
+  ref?: Ref<HTMLInputElement>
 }
 
 export function Input({
@@ -17,6 +18,7 @@ export function Input({
   id,
   className = '',
   disabled,
+  ref,
   ...props
 }: InputProps) {
   const generatedId = useId()
@@ -42,6 +44,7 @@ export function Input({
         )}
         <input
           id={inputId}
+          ref={ref}
           disabled={disabled}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : helperText ? helperId : undefined}
