@@ -36,7 +36,7 @@ export function injectStore(
 
 // Axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
   withCredentials: true, // Send httpOnly refresh token cookie on every request
   headers: {
     'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ api.interceptors.response.use(
 
     try {
       // Call refresh-token endpoint ONCE (using vanilla axios to avoid triggering interceptors)
-      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
       const response = await axios.post(
         `${baseURL}${API_ROUTES.auth.refreshToken}`,
         {},
