@@ -43,21 +43,6 @@ export function AppShell() {
             </NavLink>
 
             <NavLink
-              to="/calls"
-              className={({ isActive }) =>
-                `flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-                  isActive
-                    ? 'bg-primary text-[#FBF6EF] shadow-xs'
-                    : 'text-border hover:bg-border/20 hover:text-white'
-                }`
-              }
-              title="Calls"
-              aria-label="Calls"
-            >
-              <Phone className="h-5 w-5" />
-            </NavLink>
-
-            <NavLink
               to="/stories"
               className={({ isActive }) =>
                 `flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
@@ -70,6 +55,21 @@ export function AppShell() {
               aria-label="Stories"
             >
               <BookOpen className="h-5 w-5" />
+            </NavLink>
+
+            <NavLink
+              to="/calls"
+              className={({ isActive }) =>
+                `flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                  isActive
+                    ? 'bg-primary text-[#FBF6EF] shadow-xs'
+                    : 'text-border hover:bg-border/20 hover:text-white'
+                }`
+              }
+              title="Calls"
+              aria-label="Calls"
+            >
+              <Phone className="h-5 w-5" />
             </NavLink>
           </nav>
         </div>
@@ -88,7 +88,7 @@ export function AppShell() {
       </aside>
 
       {/* Main content area */}
-      <main className="relative flex min-w-0 flex-1 overflow-hidden">
+      <main className="relative flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <Outlet />
       </main>
 
@@ -113,18 +113,6 @@ export function AppShell() {
           </NavLink>
 
           <NavLink
-            to="/calls"
-            className={({ isActive }) =>
-              `flex flex-col items-center gap-1 py-1 px-2 text-xs font-medium transition-colors ${
-                isActive ? 'text-primary' : 'text-muted'
-              }`
-            }
-          >
-            <Phone className="h-5 w-5" />
-            <span>Calls</span>
-          </NavLink>
-
-          <NavLink
             to="/stories"
             className={({ isActive }) =>
               `flex flex-col items-center gap-1 py-1 px-2 text-xs font-medium transition-colors ${
@@ -136,16 +124,17 @@ export function AppShell() {
             <span>Stories</span>
           </NavLink>
 
-          {user && (
-            <NavLink
-              to="/profile"
-              className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              title="Account"
-              aria-label="Account"
-            >
-              <Avatar name={user.name} id={user.id} size="sm" isOnline />
-            </NavLink>
-          )}
+          <NavLink
+            to="/calls"
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 py-1 px-2 text-xs font-medium transition-colors ${
+                isActive ? 'text-primary' : 'text-muted'
+              }`
+            }
+          >
+            <Phone className="h-5 w-5" />
+            <span>Calls</span>
+          </NavLink>
         </nav>
       )}
     </div>
