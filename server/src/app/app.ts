@@ -25,18 +25,17 @@ import authRoutes from "../routes/auth.route.js";
 app.use("/api/auth", authRoutes);
 
 // Centralized error handling middleware
-app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       message: err.message,
-      errors: err.errors,
+      ...(err.errors.length > 0 && { errors: err.errors }),
     });
   }
 
   console.error("Unhandled error:", err);
   return res.status(500).json({
     message: "Internal server error",
-    error: err instanceof Error ? err.message : String(err),
   });
 });
 
