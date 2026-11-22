@@ -215,17 +215,7 @@ const userLogoutController = async (req: Request, res: Response) => {
 // Rotate user refresh token
 const userRefreshTokenController = async (req: Request, res: Response) => {
   // Get the refresh token from the cookie
-  const refreshToken: string | undefined = req.cookies?.refreshToken;
-
-  // If no refresh token is provided, return an error response
-  if (!refreshToken) {
-    throw new AppError(401, "Invalid refresh token", [
-      {
-        path: "refreshToken",
-        msg: "Refresh token is required",
-      },
-    ]);
-  }
+  const refreshToken: string = req.cookies?.refreshToken;
 
   let userId: Types.ObjectId | string;
   try {
