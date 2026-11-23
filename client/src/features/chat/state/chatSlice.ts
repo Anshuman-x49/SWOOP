@@ -44,6 +44,7 @@ export interface ChatState {
   onlineUsers: string[]
   typingUsers: Record<string, string[]> // conversationId -> array of userIds
   isInfoPanelOpen: boolean
+  connectionStatus: 'connected' | 'connecting' | 'reconnecting' | 'disconnected'
 }
 
 const initialConversationsState = conversationsAdapter.getInitialState({
@@ -58,6 +59,7 @@ const initialState: ChatState = {
   onlineUsers: [],
   typingUsers: {},
   isInfoPanelOpen: false,
+  connectionStatus: 'connecting',
 }
 
 export const fetchConversations = createAsyncThunk(
@@ -134,6 +136,12 @@ export const chatSlice = createSlice({
     },
     setInfoPanelOpen: (state, action: PayloadAction<boolean>) => {
       state.isInfoPanelOpen = action.payload
+    },
+    setConnectionStatus: (
+      state,
+      action: PayloadAction<'connected' | 'connecting' | 'reconnecting' | 'disconnected'>
+    ) => {
+      state.connectionStatus = action.payload
     },
     optimisticMessageAdded: (
       state,
@@ -367,6 +375,7 @@ export const {
   setUserOffline,
   setOnlineUsers,
   messageRead,
+  setConnectionStatus,
 } = chatSlice.actions
 
 export default chatSlice.reducer

@@ -9,6 +9,7 @@ import {
   setUserOffline,
   setOnlineUsers,
   messageRead,
+  setConnectionStatus,
 } from '../state/chatSlice'
 import type { Message } from '../api/chatApi'
 
@@ -26,6 +27,19 @@ export function useChatSocket() {
     if (!accessToken) return
 
     const socket = connectSocket(accessToken)
+
+    // Connection lifecycle listeners
+    const handleConnect = () => dispatch(setConnectionStatus('connected'))
+    const handleDisconnect = () => dispatch(setConnectionStatus('disconnected'))
+    const handleConnectError = () => dispatch(setConnectionStatus('reconnecting'))
+
+    if (socket.connected) {
+      dispatch(setConnectionStatus('connected'))
+    }
+
+    socket.on('connect', handleConnect)
+    socket.on('disconnect', handleDisconnect)
+    socket.on('connect_error', handleConnectError)
 
     const handleNewMessage = (message: Message) => {
       dispatch(messageReceived(message))
@@ -67,6 +81,9 @@ export function useChatSocket() {
     socket.on(SOCKET_EVENTS.MESSAGE_READ, handleMessageRead)
 
     return () => {
+      socket.off('connect', handleConnect)
+      socket.off('disconnect', handleDisconnect)
+      socket.off('connect_error', handleConnectError)
       socket.off(SOCKET_EVENTS.NEW_MESSAGE, handleNewMessage)
       socket.off(SOCKET_EVENTS.TYPING, handleTyping)
       socket.off(SOCKET_EVENTS.USER_ONLINE, handleUserOnline)

@@ -6,6 +6,11 @@ import {
   getMessagesController,
   sendMessageController,
 } from "../controllers/conversation.controller.js";
+import {
+  createConversationValidator,
+  getMessagesValidator,
+  sendMessageValidator,
+} from "../validators/conversation.validator.js";
 
 const router = Router();
 
@@ -22,18 +27,18 @@ router.get("/", getConversationsController);
  * @route POST /api/conversations
  * @desc Create or retrieve direct conversation with participant
  */
-router.post("/", createOrGetConversationController);
+router.post("/", createConversationValidator, createOrGetConversationController);
 
 /**
  * @route GET /api/conversations/:id/messages
  * @desc Get paginated messages for a conversation
  */
-router.get("/:id/messages", getMessagesController);
+router.get("/:id/messages", getMessagesValidator, getMessagesController);
 
 /**
  * @route POST /api/conversations/:id/messages
  * @desc Send a new message to a conversation
  */
-router.post("/:id/messages", sendMessageController);
+router.post("/:id/messages", sendMessageValidator, sendMessageController);
 
 export default router;

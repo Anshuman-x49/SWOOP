@@ -1,5 +1,6 @@
 import { Server, type Socket } from "socket.io";
 import type { Server as HttpServer } from "node:http";
+import mongoose from "mongoose";
 import { verifyAccessToken } from "../utils/JWT.js";
 import config from "../config/config.js";
 import { createMessage, updateMessageStatus, markConversationMessagesAsRead } from "../DAO/message.dao.js";
@@ -74,12 +75,39 @@ export default function initializeSocket(httpServer: HttpServer) {
     const currentlyOnline = Array.from(onlineUsers.keys());
     socket.emit("online-users", { userIds: currentlyOnline });
 
-    // 2. Join a conversation room
-    socket.on("join-conversation", ({ conversationId }: { conversationId: string }) => {
-      if (conversationId) {
-        socket.join(conversationId);
+    // 2. Join a conversation room (strictly verified authorization)
+    socket.on(
+      "join-conversation",
+      async ({ conversationId }: { conversationId: string }) => {
+        try {
+          if (!conversationId || !mongoose.isValidObjectId(conversationId)) {
+            socket.emit("error", { message: "Invalid conversation ID" });
+            return;
+          }
+
+          const conversation = await getConversationById({ conversationId });
+          if (!conversation) {
+            socket.emit("error", { message: "Conversation not found" });
+            return;
+          }
+
+          const isParticipant = conversation.participants.some(
+            (p: any) => p._id.toString() === userId || p.toString() === userId
+          );
+
+          if (!isParticipant) {
+            socket.emit("error", {
+              message: "Unauthorized: You are not a participant in this conversation",
+            });
+            return;
+          }
+
+          socket.join(conversationId);
+        } catch (error) {
+          console.error("Socket join-conversation error:", error);
+        }
       }
-    });
+    );
 
     // 3. Leave a conversation room
     socket.on("leave-conversation", ({ conversationId }: { conversationId: string }) => {
@@ -127,9 +155,9 @@ export default function initializeSocket(httpServer: HttpServer) {
       }
     );
 
-    // 5. Typing indicator events
+    // 5. Typing indicator events (only allowed if socket has joined room)
     socket.on("typing-start", ({ conversationId }: { conversationId: string }) => {
-      if (conversationId) {
+      if (conversationId && socket.rooms.has(conversationId)) {
         socket.to(conversationId).emit("typing", {
           conversationId,
           userId,
@@ -139,7 +167,7 @@ export default function initializeSocket(httpServer: HttpServer) {
     });
 
     socket.on("typing-stop", ({ conversationId }: { conversationId: string }) => {
-      if (conversationId) {
+      if (conversationId && socket.rooms.has(conversationId)) {
         socket.to(conversationId).emit("typing", {
           conversationId,
           userId,
@@ -148,7 +176,7 @@ export default function initializeSocket(httpServer: HttpServer) {
       }
     });
 
-    // 6. Mark message as read
+    // 6. Mark message as read (only allowed if socket has joined room)
     socket.on(
       "mark-read",
       async ({
@@ -159,9 +187,11 @@ export default function initializeSocket(httpServer: HttpServer) {
         messageId?: string;
       }) => {
         try {
+          if (!conversationId || !socket.rooms.has(conversationId)) return;
+
           if (messageId) {
             await updateMessageStatus({ messageId, status: "read" });
-          } else if (conversationId) {
+          } else {
             await markConversationMessagesAsRead({
               conversationId,
               readerId: userId,

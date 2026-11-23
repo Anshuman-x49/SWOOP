@@ -73,6 +73,22 @@ export function ChatPage() {
     }
   }, [conversationId, dispatch, markConversationRead])
 
+  // Automatically acknowledge read status when incoming messages arrive while chat is open
+  useEffect(() => {
+    if (messages.length > 0 && conversationId) {
+      const lastMessage = messages[messages.length - 1]
+      const isPartnerMsg =
+        lastMessage &&
+        (typeof lastMessage.sender === 'object'
+          ? lastMessage.sender._id !== user?.id
+          : lastMessage.sender !== user?.id)
+
+      if (isPartnerMsg && lastMessage.status !== 'read') {
+        markConversationRead(lastMessage._id)
+      }
+    }
+  }, [messages, conversationId, user?.id, markConversationRead])
+
   // 2. Auto-scroll to bottom on initial load and when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {

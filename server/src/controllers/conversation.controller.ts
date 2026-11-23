@@ -115,7 +115,21 @@ export async function getMessagesController(req: Request, res: Response) {
   });
 
   // Mark unread messages in this conversation as read
-  await markConversationMessagesAsRead({ conversationId, readerId: userId });
+  const modifiedCount = await markConversationMessagesAsRead({
+    conversationId,
+    readerId: userId,
+  });
+
+  // Emit real-time read acknowledgment if messages were marked read
+  if (modifiedCount > 0) {
+    const io = getIO();
+    if (io) {
+      io.to(conversationId).emit("message-read", {
+        conversationId,
+        userId,
+      });
+    }
+  }
 
   return sendSuccess({
     res,

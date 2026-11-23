@@ -67,6 +67,7 @@ export function MessageInput({
         <button
           type="button"
           onClick={handleSend}
+          onMouseDown={(e) => e.preventDefault()}
           disabled={!canSend}
           aria-label="Send message"
           title="Send"

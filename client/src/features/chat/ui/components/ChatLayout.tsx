@@ -8,6 +8,7 @@ import {
   selectAllConversations,
   selectConversationsStatus,
   selectOnlineUsers,
+  selectConnectionStatus,
 } from '../../state/chatSelectors'
 import { Avatar, Button, EmptyState, Input } from '../../../../shared/ui'
 import { ConversationItem } from './ConversationItem'
@@ -27,6 +28,21 @@ export function ChatLayout() {
   const conversations = useAppSelector(selectAllConversations)
   const status = useAppSelector(selectConversationsStatus)
   const onlineUsers = useAppSelector(selectOnlineUsers)
+  const connectionStatus = useAppSelector(selectConnectionStatus)
+
+  // Total unread conversations count
+  const totalUnreadCount = useMemo(() => {
+    return conversations.filter((conversation) => {
+      const lastMsg = conversation.lastMessage
+      return (
+        lastMsg &&
+        lastMsg.status !== 'read' &&
+        (typeof lastMsg.sender === 'object'
+          ? lastMsg.sender._id !== user?.id
+          : lastMsg.sender !== user?.id)
+      )
+    }).length
+  }, [conversations, user?.id])
 
   // Fetch conversations on mount
   useEffect(() => {
@@ -68,7 +84,22 @@ export function ChatLayout() {
   }, [conversations, activeTab, searchQuery, user?.id])
 
   return (
-    <div className="flex h-full min-w-0 flex-1 bg-bg">
+    <div className="flex h-full min-w-0 flex-1 bg-bg relative">
+      {/* Offline/Reconnection status banner */}
+      {connectionStatus !== 'connected' && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="absolute top-0 inset-x-0 z-40 bg-accent text-[#2B1D16] py-1 px-4 text-center text-xs font-semibold shadow-xs flex items-center justify-center gap-2 select-none"
+        >
+          <span className="h-2 w-2 rounded-full bg-[#2B1D16] animate-pulse" />
+          <span>
+            {connectionStatus === 'reconnecting'
+              ? 'Reconnecting to SWOOP chat...'
+              : 'Connecting to live chat...'}
+          </span>
+        </div>
+      )}
       {/* Conversation List Sidebar */}
       <aside
         className={`${
@@ -118,13 +149,18 @@ export function ChatLayout() {
             <button
               type="button"
               onClick={() => setActiveTab('unread')}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+              className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-semibold transition-all ${
                 activeTab === 'unread'
                   ? 'bg-surface text-primary shadow-xs'
                   : 'text-muted hover:text-text'
               }`}
             >
-              Unread
+              <span>Unread</span>
+              {totalUnreadCount > 0 && (
+                <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-[#2B1D16] leading-none">
+                  {totalUnreadCount}
+                </span>
+              )}
             </button>
           </div>
         </header>

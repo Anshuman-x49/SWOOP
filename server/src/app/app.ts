@@ -20,8 +20,8 @@ app.use(
   })
 );
 app.use(morgan("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "15kb" }));
+app.use(express.urlencoded({ extended: true, limit: "15kb" }));
 app.use(cookieParser());
 
 // Routes import
@@ -40,6 +40,18 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     return res.status(err.statusCode).json({
       message: err.message,
       ...(err.errors.length > 0 && { errors: err.errors }),
+    });
+  }
+
+  // Handle Mongoose CastError (invalid ObjectId format)
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "name" in err &&
+    err.name === "CastError"
+  ) {
+    return res.status(400).json({
+      message: "Invalid resource identifier format",
     });
   }
 

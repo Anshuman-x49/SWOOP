@@ -29,6 +29,9 @@ export const selectActiveConversation = createSelector(
 
 export const selectOnlineUsers = (state: RootState) => state.chat.onlineUsers
 
+export const selectConnectionStatus = (state: RootState) =>
+  state.chat.connectionStatus
+
 export const selectTypingUsersForActiveConversation = createSelector(
   [(state: RootState) => state.chat.typingUsers, selectActiveConversationId],
   (typingUsers, activeId) => (activeId ? typingUsers[activeId] || [] : [])
