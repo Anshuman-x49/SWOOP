@@ -1,10 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer, { setAccessToken, clearAuth } from '../../features/auth/state/authSlice'
+import chatReducer from '../../features/chat/state/chatSlice'
+import usersReducer from '../../features/users/state/usersSlice'
 import { injectStore } from '../../config/Axios'
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    chat: chatReducer,
+    users: usersReducer,
   },
 })
 

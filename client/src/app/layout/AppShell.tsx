@@ -1,11 +1,13 @@
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../../features/auth/hooks/useAuth'
+import { useChatSocket } from '../../features/chat/hooks/useChatSocket'
 import { Avatar } from '../../shared/ui'
 import { BookOpen, Coffee, MessageSquare, Phone } from 'lucide-react'
 
 export function AppShell() {
   const { user } = useAuth()
   const location = useLocation()
+  useChatSocket()
 
   const isChatOpenOnMobile = /^\/chats\/.+/.test(location.pathname)
 

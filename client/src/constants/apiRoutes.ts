@@ -1,6 +1,5 @@
 /**
  * Centralized API endpoints for SWOOP
- * Chat and user-search endpoints are marked as TODO for when the backend is ready.
  */
 export const API_ROUTES = {
   auth: {
@@ -10,16 +9,15 @@ export const API_ROUTES = {
     refreshToken: '/api/auth/refresh-token',
     getMe: '/api/auth/get-me',
   },
-  // TODO: Backend contracts to be filled in
   conversations: {
-    list: '/api/conversations', // TODO: GET
-    create: '/api/conversations', // TODO: POST
-    messages: (conversationId: string) => `/api/conversations/${conversationId}/messages`, // TODO: GET (pagination)
+    list: '/api/conversations',
+    create: '/api/conversations',
+    messages: (conversationId: string) => `/api/conversations/${conversationId}/messages`,
   },
   messages: {
-    send: (conversationId: string) => `/api/conversations/${conversationId}/messages`, // TODO: POST
+    send: (conversationId: string) => `/api/conversations/${conversationId}/messages`,
   },
   users: {
-    search: '/api/users/search', // TODO: GET ?query=
+    search: '/api/users/search',
   },
 } as const

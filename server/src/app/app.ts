@@ -26,9 +26,13 @@ app.use(cookieParser());
 
 // Routes import
 import authRoutes from "../routes/auth.route.js";
+import conversationRoutes from "../routes/conversation.route.js";
+import usersRoutes from "../routes/users.route.js";
 
 // Use routes
 app.use("/api/auth", authRoutes);
+app.use("/api/conversations", conversationRoutes);
+app.use("/api/users", usersRoutes);
 
 // Centralized error handling middleware
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
